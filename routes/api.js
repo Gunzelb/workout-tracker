@@ -2,15 +2,25 @@ const router = require("express").Router();
 const User = require("../models/User");
 const Exercise = require("../models/Exercise");
 
-router.get("/workouts", (req, res) => {
-  Exercise.find({})
-    .sort({ day: -1 })
-    .then((data) => {
-      res.status(200).json(data);
-    })
-    .catch((err) => {
-      res.status(400).json(err);
-    });
+router.get("/workouts", async (req, res) => {
+  try {
+    const workouts = await Exercise.find({}).sort({ day: +1 });
+
+    if (workouts) {
+      const result = await Exercise.aggregate([
+        {
+          $addFields: {
+            totalDuration: {
+              $sum: "$exercises.duration",
+            },
+          },
+        },
+      ]);
+      res.status(200).json(result);
+    }
+  } catch (err) {
+    res.status(400).json(err);
+  }
 });
 
 router.post("/workouts", ({ body }, res) => {
@@ -25,9 +35,9 @@ router.post("/workouts", ({ body }, res) => {
 
 router.put("/workouts:id", (req, res) => {
   const filter = req.params.id;
-  const update = req.body;
+  const update = { $push: { exercises: req.body } };
 
-  Exercise.findOneAndUpdate(filter, update)
+  Exercise.findByIdAndUpdate(filter, update)
     .then((data) => {
       res.status(200).json(data);
     })
@@ -36,13 +46,25 @@ router.put("/workouts:id", (req, res) => {
     });
 });
 
-router.get("/workouts/range", (req, res) => {
-  Exercise.findAll({})
-    .sort({ day: -1 })
-    .then((data) => {
-      res.status(200).json(data);
-    })
-    .catch((err) => {
-      res.status(400).json(err);
-    });
+router.get("/workouts/range", async (req, res) => {
+  try {
+    const workouts = await Exercise.find({}).sort({ day: +1 });
+
+    if (workouts) {
+      const result = await Exercise.aggregate([
+        {
+          $addFields: {
+            totalDuration: {
+              $sum: "$exercises.duration",
+            },
+          },
+        },
+      ]);
+      res.status(200).json(result);
+    }
+  } catch (err) {
+    res.status(400).json(err);
+  }
 });
+
+module.exports = router;
