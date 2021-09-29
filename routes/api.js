@@ -23,18 +23,25 @@ router.get("/workouts", async (req, res) => {
   }
 });
 
-router.post("/workouts", ({ body }, res) => {
-  Exercise.create(body)
+router.post("/workouts", (req, res) => {
+  console.log(req.body);
+  const newExercise = {
+    day: new Date(),
+    exercise: [],
+  };
+  Exercise.create(newExercise)
     .then((data) => {
       res.status(200).json(data);
     })
     .catch((err) => {
+      console.log(err);
       res.json(err).status(400);
     });
 });
 
-router.put("/workouts:id", (req, res) => {
-  const filter = req.params.id;
+router.put("/workouts/:id", (req, res) => {
+  const filter = { _id: req.params.id };
+  console.log(req.body);
   const update = { $push: { exercises: req.body } };
 
   Exercise.findByIdAndUpdate(filter, update)
@@ -42,6 +49,7 @@ router.put("/workouts:id", (req, res) => {
       res.status(200).json(data);
     })
     .catch((err) => {
+      console.log(err);
       res.status(400).json(err);
     });
 });
